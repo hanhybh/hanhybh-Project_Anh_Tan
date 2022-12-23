@@ -1,0 +1,1 @@
+bai1_uart_22_12\startup_stm32f103xb.o: startup_stm32f103xb.s
