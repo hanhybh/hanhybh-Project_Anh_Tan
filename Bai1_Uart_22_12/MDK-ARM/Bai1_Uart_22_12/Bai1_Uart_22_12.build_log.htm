@@ -21,60 +21,102 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.7.0
 Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
-E:\Bai_tap_tat_ca\STM_32\Bai1_Uart_22_12\MDK-ARM\Bai1_Uart_22_12.uvprojx
-Project File Date:  12/22/2022
+E:\Bai_tap_tat_ca\STM_32\Project_Anh_Tan\Bai1_Uart_22_12\MDK-ARM\Bai1_Uart_22_12.uvprojx
+Project File Date:  12/23/2022
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.14', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Bai1_Uart_22_12'
-../Core/Src/main.c(54): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(64): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 1 dong.\n", 15, 300);
                                            ^~~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(59): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(69): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 2 dong.\n", 15, 300);
                                            ^~~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(64): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(74): warning: passing 'char [15]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 3 dong.\n", 15, 300);
                                            ^~~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(69): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(79): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 1 cat.\n", 14, 300);
                                            ^~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(74): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(84): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 2 cat.\n", 14, 300);
                                            ^~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(79): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(89): warning: passing 'char [14]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Relay 3 cat.\n", 14, 300);
                                            ^~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-../Core/Src/main.c(84): warning: passing 'char [22]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+../Core/Src/main.c(94): warning: passing 'char [22]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
                 HAL_UART_Transmit(&huart1, "Ca 3 Relay cung cat.\n", 21, 300);
                                            ^~~~~~~~~~~~~~~~~~~~~~~~
 ../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
                                                                         ^
-7 warnings generated.
+../Core/Src/main.c(108): warning: passing 'uint8_t [100]' to parameter of type 'char *' converts between pointers to integer types with different sign [-Wpointer-sign]
+        snprintf(V1_buff, 99, "%f", V1);
+                 ^~~~~~~
+C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h(440): note: passing argument to parameter here
+extern _ARMABI int snprintf(char * __restrict /*s*/, size_t /*n*/,
+                                                   ^
+../Core/Src/main.c(113): warning: passing 'uint8_t [100]' to parameter of type 'char *' converts between pointers to integer types with different sign [-Wpointer-sign]
+        snprintf(V2_buff, 99, "%f", V2);
+                 ^~~~~~~
+C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h(440): note: passing argument to parameter here
+extern _ARMABI int snprintf(char * __restrict /*s*/, size_t /*n*/,
+                                                   ^
+../Core/Src/main.c(121): warning: passing 'char [21]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+        HAL_UART_Transmit(&huart1, "Gia tri dien ap la:\n", 20, 300);
+                                   ^~~~~~~~~~~~~~~~~~~~~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                                                                        ^
+../Core/Src/main.c(123): warning: passing 'char [2]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+        HAL_UART_Transmit(&huart1, "\n", 1, 300);
+                                   ^~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                                                                        ^
+../Core/Src/main.c(125): warning: passing 'char [2]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+        HAL_UART_Transmit(&huart1, "\n", 1, 300);
+                                   ^~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                                                                        ^
+../Core/Src/main.c(126): warning: passing 'char [11]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+        HAL_UART_Transmit(&huart1, "Ket thuc!\n", 10, 300);
+                                   ^~~~~~~~~~~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                                                                        ^
+../Core/Src/main.c(127): warning: passing 'char [2]' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types with different sign [-Wpointer-sign]
+        HAL_UART_Transmit(&huart1, "\n", 1, 300);
+                                   ^~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(725): note: passing argument to parameter 'pData' here
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+                                                                        ^
+14 warnings generated.
 compiling main.c...
 linking...
-Program Size: Code=5232 RO-data=292 RW-data=44 ZI-data=1116  
+Program Size: Code=11736 RO-data=300 RW-data=92 ZI-data=1380  
 FromELF: creating hex file...
-"Bai1_Uart_22_12\Bai1_Uart_22_12.axf" - 0 Error(s), 7 Warning(s).
+"Bai1_Uart_22_12\Bai1_Uart_22_12.axf" - 0 Error(s), 14 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -98,7 +140,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS\Core\Include\tz_context.h
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
