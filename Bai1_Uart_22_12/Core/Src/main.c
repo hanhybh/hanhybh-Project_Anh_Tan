@@ -104,12 +104,12 @@ void ReadVol()
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	x = HAL_ADC_GetValue(&hadc1);
-  V1 = x*3.3/4095;
+  V1 = x*5.5/4095;
 	snprintf(V1_buff, 99, "%f", V1);
 	
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	y = HAL_ADC_GetValue(&hadc1);
-  V2 = y*5/4095;
+  V2 = y*3.3/4095;
 	snprintf(V2_buff, 99, "%f", V2);
 	
 	HAL_ADC_Stop(&hadc1);
