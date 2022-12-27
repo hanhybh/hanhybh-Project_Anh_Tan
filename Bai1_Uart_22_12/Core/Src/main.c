@@ -19,10 +19,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdio.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,7 +109,7 @@ void ReadVol()
 	
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	y = HAL_ADC_GetValue(&hadc1);
-  V2 = y*3.3/4095;
+  V2 = y*5/4095;
 	snprintf(V2_buff, 99, "%f", V2);
 	
 	HAL_ADC_Stop(&hadc1);
@@ -186,7 +186,11 @@ int main(void)
   {
     /* USER CODE END WHILE */
 		TranVol();
-		
+		uint32_t t =0;
+		while(HAL_GetTick() - t >= 10000)
+		{
+			t = HAL_GetTick();
+		}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
