@@ -55,23 +55,22 @@ uint8_t Tx1_buff[] = "Task2. Dung ADC doc gia tri dien ap.\n";
 uint8_t V1_buff[MAX], V2_buff[MAX] ;
 float x, y;
 float V1,V2;
-uint32_t k = 0;
 
-uint32_t t = 0;
-uint32_t count = 0;
+uint32_t cnt = 0;
 
 void Pluse()
 {
-	
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
-	HAL_Delay(1000);
+	cnt = HAL_GetTick();
+	while(HAL_GetTick() - cnt <= 1000);
+	
 	
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 10000);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	count++;
+
 	if(Rx_data == '1')
 	{
 		HAL_UART_Transmit(&huart1, "Relay 1 dong.\n", 15, 300);
@@ -144,8 +143,8 @@ void TranVol()
 	HAL_UART_Transmit(&huart1, "\n", 1, 300);
 	HAL_UART_Transmit(&huart1, "Ket thuc!\n", 10, 300);
 	HAL_UART_Transmit(&huart1, "\n", 1, 300);
-	while((HAL_GetTick() - t <= 10000));
-	t = HAL_GetTick();
+//	while((HAL_GetTick() - t <= 10000));
+//	t = HAL_GetTick();
 }
 
 
@@ -202,7 +201,7 @@ int main(void)
 	HAL_UART_Transmit(&huart1, Tx1_buff, sizeof(Tx1_buff), 300);
   HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
-
+  uint32_t t = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -213,7 +212,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		TranVol();
-//		uint32_t t =0;
+		while(HAL_GetTick() - t <= 5000);
+		t = HAL_GetTick();
+		
 		
 
 		
