@@ -19,10 +19,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <delay_timer.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,9 +45,13 @@
 ADC_HandleTypeDef hadc1;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
+osThreadId Task1_TranVolHandle;
+osThreadId Task2_UARTHandle;
+osThreadId Task3_PluseHandle;
 /* USER CODE BEGIN PV */
 uint8_t Tx0_buff[] = "Task1. Dieu khien dong co bang relay.\n";
 uint8_t Rx_buff[30];
@@ -56,19 +62,16 @@ uint8_t V1_buff[MAX], V2_buff[MAX] ;
 float x, y;
 float V1,V2;
 
-uint32_t cnt = 0;
 
-void Pluse()
+void Pluse()                                           // Truyen 100 xung moi xung có do rong la 10ms
 {
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
-	cnt = HAL_GetTick();
-	while(HAL_GetTick() - cnt <= 1000);
-	
+	delayus(1000);
 	
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 10000);
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) //Truyen nhan du lieu UART
 {
 
 	if(Rx_data == '1')
@@ -117,7 +120,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 }
 
-void ReadVol()
+void ReadVol()                                         // Doc gia tri dien ap (3V3 va 5V)
 {
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 300);
@@ -133,7 +136,7 @@ void ReadVol()
 	HAL_ADC_Stop(&hadc1);
 }
 
-void TranVol()
+void TranVol()                                        // Hien thi gia tri dien ap
 {
 	ReadVol();
 	HAL_UART_Transmit(&huart1, "Gia tri dien ap la:\n", 20, 300);
@@ -143,8 +146,6 @@ void TranVol()
 	HAL_UART_Transmit(&huart1, "\n", 1, 300);
 	HAL_UART_Transmit(&huart1, "Ket thuc!\n", 10, 300);
 	HAL_UART_Transmit(&huart1, "\n", 1, 300);
-//	while((HAL_GetTick() - t <= 10000));
-//	t = HAL_GetTick();
 }
 
 
@@ -156,6 +157,11 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
+void Voltage(void const * argument);
+void Tranfer_Receive(void const * argument);
+void Pluse100(void const * argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -196,6 +202,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Transmit(&huart1, Tx0_buff, sizeof(Tx0_buff), 300);
 	HAL_UART_Transmit(&huart1, Tx1_buff, sizeof(Tx1_buff), 300);
@@ -204,6 +211,43 @@ int main(void)
   uint32_t t = 0;
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of Task1_TranVol */
+  osThreadDef(Task1_TranVol, Voltage, osPriorityNormal, 0, 128);
+  Task1_TranVolHandle = osThreadCreate(osThread(Task1_TranVol), NULL);
+
+  /* definition and creation of Task2_UART */
+  osThreadDef(Task2_UART, Tranfer_Receive, osPriorityIdle, 0, 128);
+  Task2_UARTHandle = osThreadCreate(osThread(Task2_UART), NULL);
+
+  /* definition and creation of Task3_Pluse */
+  osThreadDef(Task3_Pluse, Pluse100, osPriorityIdle, 0, 128);
+  Task3_PluseHandle = osThreadCreate(osThread(Task3_Pluse), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -211,9 +255,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		TranVol();
-		while(HAL_GetTick() - t <= 5000);
-		t = HAL_GetTick();
+//		TranVol();
+//		while(HAL_GetTick() - t <= 5000);
+//		t = HAL_GetTick();
 		
 		
 
@@ -380,6 +424,51 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 71;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -441,6 +530,84 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_Voltage */
+/**
+  * @brief  Function implementing the Task1_TranVol thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_Voltage */
+void Voltage(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+		TranVol();     
+    Delayms(5000);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_Tranfer_Receive */
+/**
+* @brief Function implementing the Task2_UART thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Tranfer_Receive */
+void Tranfer_Receive(void const * argument)
+{
+  /* USER CODE BEGIN Tranfer_Receive */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END Tranfer_Receive */
+}
+
+/* USER CODE BEGIN Header_Pluse100 */
+/**
+* @brief Function implementing the Task3_Pluse thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Pluse100 */
+void Pluse100(void const * argument)
+{
+	
+  /* USER CODE BEGIN Pluse100 */
+  /* Infinite loop */
+  for(;;)
+  {
+		Pluse();
+    osDelay(1);
+  }
+  /* USER CODE END Pluse100 */
+}
+
+ /**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM4 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM4) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

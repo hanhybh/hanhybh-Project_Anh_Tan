@@ -1,8 +1,10 @@
 --cpu Cortex-M3
 "bai1_uart_22_12\startup_stm32f103xb.o"
 "bai1_uart_22_12\main.o"
+"bai1_uart_22_12\freertos.o"
 "bai1_uart_22_12\stm32f1xx_it.o"
 "bai1_uart_22_12\stm32f1xx_hal_msp.o"
+"bai1_uart_22_12\stm32f1xx_hal_timebase_tim.o"
 "bai1_uart_22_12\stm32f1xx_hal_gpio_ex.o"
 "bai1_uart_22_12\stm32f1xx_hal_adc.o"
 "bai1_uart_22_12\stm32f1xx_hal_adc_ex.o"
@@ -20,6 +22,17 @@
 "bai1_uart_22_12\stm32f1xx_hal_tim_ex.o"
 "bai1_uart_22_12\stm32f1xx_hal_uart.o"
 "bai1_uart_22_12\system_stm32f1xx.o"
+"bai1_uart_22_12\delay_timer.o"
+"bai1_uart_22_12\croutine.o"
+"bai1_uart_22_12\event_groups.o"
+"bai1_uart_22_12\list.o"
+"bai1_uart_22_12\queue.o"
+"bai1_uart_22_12\stream_buffer.o"
+"bai1_uart_22_12\tasks.o"
+"bai1_uart_22_12\timers.o"
+"bai1_uart_22_12\cmsis_os.o"
+"bai1_uart_22_12\heap_4.o"
+"bai1_uart_22_12\port.o"
 --library_type=microlib --strict --scatter "Bai1_Uart_22_12\Bai1_Uart_22_12.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
