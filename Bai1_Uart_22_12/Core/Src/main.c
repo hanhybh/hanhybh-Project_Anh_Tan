@@ -62,16 +62,19 @@ uint8_t V1_buff[MAX], V2_buff[MAX] ;
 float x, y;
 float V1,V2;
 
-
-void Pluse()                                           // Truyen 100 xung moi xung có do rong la 10ms
+/*************************DOC GIA TRI DIEN AP BANG ADC(2 CHANNAL)****************************************/
+//TRUYEN 100 XUNG VOI DO RONG LA 10MS
+void Pluse()                                           
 {
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
-	delayus(1000);
+	Delayms(10000);
 	
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 10000);
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) //Truyen nhan du lieu UART
+/********************************************************************************************************/
+//TRUYEN NHAN DU LIEU UART
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
 
 	if(Rx_data == '1')
@@ -119,36 +122,76 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) //Truyen nhan du lieu UA
 	}
 	HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 }
-
-void ReadVol()                                         // Doc gia tri dien ap (3V3 va 5V)
+/*************************DOC GIA TRI DIEN AP BANG ADC(2 CHANNAL)****************************************/
+//KHOI TAO ADC1 CHANNAL 0
+void ADC_Select_CH0 (void)
 {
+ ADC_ChannelConfTypeDef sConfig = {0};
+ sConfig.Channel = ADC_CHANNEL_0;
+ sConfig.Rank = ADC_REGULAR_RANK_1;
+ sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
+ if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+ {
+   Error_Handler();
+ }
+}
+
+//KHOI TAO ADC1 CHANNAL 1
+void ADC_Select_CH1 (void)
+{
+ ADC_ChannelConfTypeDef sConfig = {0};
+ sConfig.Channel = ADC_CHANNEL_1;
+ sConfig.Rank = ADC_REGULAR_RANK_1;
+ sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
+ if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+ {
+   Error_Handler();
+ }
+}
+
+//DOC GIA TRI DIEN AP 5V(PA0) 
+void ReadVol_PA0()                                       
+{
+	ADC_Select_CH0();
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	x = HAL_ADC_GetValue(&hadc1);
   V1 = x*5.5/4095;
 	snprintf(V1_buff, 99, "%f", V1);
+	HAL_ADC_Stop(&hadc1);
+}
 	
+//DOC GIA TRI DIEN AP 3V3(PA0) 
+void ReadVol_PA1()                                       
+{
+	ADC_Select_CH1();
+	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	y = HAL_ADC_GetValue(&hadc1);
   V2 = y*3.3/4095;
 	snprintf(V2_buff, 99, "%f", V2);
-	
 	HAL_ADC_Stop(&hadc1);
 }
 
-void TranVol()                                        // Hien thi gia tri dien ap
+//HIEN THI GIA TRI 5V - UART
+void TranVol_PA0()                                       
 {
-	ReadVol();
-	HAL_UART_Transmit(&huart1, "Gia tri dien ap la:\n", 20, 300);
+	ReadVol_PA0();
+	HAL_UART_Transmit(&huart1, "Gia tri dien ap tai chan PA0 la: ", 35, 300);
 	HAL_UART_Transmit(&huart1, V1_buff, sizeof(V1_buff), 300);
-	HAL_UART_Transmit(&huart1, "\n", 1, 300);
-	HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
-	HAL_UART_Transmit(&huart1, "\n", 1, 300);
-	HAL_UART_Transmit(&huart1, "Ket thuc!\n", 10, 300);
 	HAL_UART_Transmit(&huart1, "\n", 1, 300);
 }
 
+//HIEN THI GIA TRI 3V3 - UART
+void TranVol_PA1()                                       
+{
+	ReadVol_PA1();
+	HAL_UART_Transmit(&huart1, "Gia tri dien ap tai chan PA1 la: ", 35, 300);
+	HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
+	HAL_UART_Transmit(&huart1, "\n", 1, 300);
+}
 
+/*****************************************************************************************************/
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -544,7 +587,8 @@ void Voltage(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		TranVol();     
+		TranVol_PA0();     
+		TranVol_PA1();   
     Delayms(5000);
   }
   /* USER CODE END 5 */
@@ -563,7 +607,7 @@ void Tranfer_Receive(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    HAL_UART_Transmit(&huart1, "Relay 10 dong.\n", 16, 300);
   }
   /* USER CODE END Tranfer_Receive */
 }
@@ -582,8 +626,8 @@ void Pluse100(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		Pluse();
-    osDelay(1);
+		HAL_UART_Transmit(&huart1, "Relay 100 dong.\n", 17, 300);
+    
   }
   /* USER CODE END Pluse100 */
 }
