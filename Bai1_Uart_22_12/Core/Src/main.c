@@ -43,6 +43,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc2;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -59,9 +60,9 @@ uint8_t Rx_buff[30];
 uint8_t Rx_data = 0;
 
 uint8_t Tx1_buff[] = "Task2. Dung ADC doc gia tri dien ap.\n";
-uint8_t V1_buff[MAX], V2_buff[MAX] ;
-float x, y;
-float V1,V2;
+uint8_t V1_buff[MAX], V2_buff[MAX], Vref_buff[MAX];
+float V[3];
+float V1, V2, VDDA;
 
 uint32_t cnt1 = 0, cnt2 = 0, cnt3 = 0;
 
@@ -148,7 +149,7 @@ void ADC_Select_CH0 (void)
  sConfig.Channel = ADC_CHANNEL_0;
  sConfig.Rank = ADC_REGULAR_RANK_1;
  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
- if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+ if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
  {
    Error_Handler();
  }
@@ -160,20 +161,31 @@ void ADC_Select_CH1 (void)
  sConfig.Channel = ADC_CHANNEL_1;
  sConfig.Rank = ADC_REGULAR_RANK_1;
  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
- if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+ if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
  {
    Error_Handler();
  }
+}
+void ReadVol_Vref()                                       
+{
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 300);
+	V[0] = HAL_ADC_GetValue(&hadc1);
+  VDDA = 4095.0 * 1.212 / (float)V[0];
+	HAL_ADC_Stop(&hadc1);
+	
+	snprintf((char *) Vref_buff, 99, "Gia tri dien ap tai chan Vref: %.2f\n", VDDA);
 }
 
 void ReadVol_PA0()                                       
 {
 	ADC_Select_CH0();
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 300);
-	x = HAL_ADC_GetValue(&hadc1);
-	HAL_ADC_Stop(&hadc1);
-  V1 = x*5/4095;
+	HAL_ADC_Start(&hadc2);
+	HAL_ADC_PollForConversion(&hadc2, 300);
+	V[1] = HAL_ADC_GetValue(&hadc2);
+	HAL_ADC_Stop(&hadc2);
+  V1 = V[1]*VDDA/4095;
+	V1 = V1 *5/3.3;
 	
 	snprintf((char *) V1_buff, 99, "Gia tri dien ap tai chan PA0(2.5 - 5V) la: %.2f\n", V1);
 
@@ -182,15 +194,20 @@ void ReadVol_PA0()
 void ReadVol_PA1()                                       
 {
 	ADC_Select_CH1();
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 300);
-	y = HAL_ADC_GetValue(&hadc1);
-  V2 = y*3.3/4095;
-	HAL_ADC_Stop(&hadc1);
+	HAL_ADC_Start(&hadc2);
+	HAL_ADC_PollForConversion(&hadc2, 300);
+	V[2] = HAL_ADC_GetValue(&hadc2);
+  V2 = V[2]*VDDA/4095;
+	HAL_ADC_Stop(&hadc2);
 
 	snprintf((char *) V2_buff, 99, "Gia tri dien ap tai chan PA1 la(2.5 - 3.3V): %.2f\n", V2);
 }
 
+void TranVol_Vref()  
+{
+	ReadVol_Vref();
+	HAL_UART_Transmit(&huart1, Vref_buff, sizeof(Vref_buff), 300);
+}
 
 void TranVol_PA0()                                       
 {
@@ -229,6 +246,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_ADC2_Init(void);
 void Voltage(void const * argument);
 void Tranfer_Receive(void const * argument);
 void Pluse100(void const * argument);
@@ -274,6 +292,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Transmit(&huart1, Tx0_buff, sizeof(Tx0_buff), 300);
 	HAL_UART_Transmit(&huart1, Tx1_buff, sizeof(Tx1_buff), 300);
@@ -395,13 +414,58 @@ static void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC2_Init(void)
+{
+
+  /* USER CODE BEGIN ADC2_Init 0 */
+
+  /* USER CODE END ADC2_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC2_Init 1 */
+
+  /* USER CODE END ADC2_Init 1 */
+  /** Common config
+  */
+  hadc2.Instance = ADC2;
+  hadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc2.Init.ContinuousConvMode = ENABLE;
+  hadc2.Init.DiscontinuousConvMode = DISABLE;
+  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.NbrOfConversion = 2;
+  if (HAL_ADC_Init(&hadc2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -410,7 +474,7 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -418,13 +482,13 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_2;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN ADC1_Init 2 */
+  /* USER CODE BEGIN ADC2_Init 2 */
 
-  /* USER CODE END ADC1_Init 2 */
+  /* USER CODE END ADC2_Init 2 */
 
 }
 
@@ -608,6 +672,7 @@ void Voltage(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+		TranVol_Vref();
 		TranVol_PA0();     
 		TranVol_PA1();   
     Delayms(5000);
@@ -642,7 +707,6 @@ void Tranfer_Receive(void const * argument)
 /* USER CODE END Header_Pluse100 */
 void Pluse100(void const * argument)
 {
-	
   /* USER CODE BEGIN Pluse100 */
   /* Infinite loop */
   for(;;)
