@@ -53,6 +53,7 @@ osThreadId Task1_TranVolHandle;
 osThreadId Task2_UARTHandle;
 osThreadId Task3_PluseHandle;
 /* USER CODE BEGIN PV */
+/*************************KHAI BAO****************************************/
 uint8_t Tx0_buff[] = "Task1. Dieu khien dong co bang relay.\n";
 uint8_t Rx_buff[30];
 uint8_t Rx_data = 0;
@@ -62,68 +63,85 @@ uint8_t V1_buff[MAX], V2_buff[MAX] ;
 float x, y;
 float V1,V2;
 
-/*************************DOC GIA TRI DIEN AP BANG ADC(2 CHANNAL)****************************************/
-//TRUYEN 100 XUNG VOI DO RONG LA 10MS
+uint32_t cnt1 = 0, cnt2 = 0, cnt3 = 0;
+
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+ 
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
+
+/*************************PWM. 100 PLUSE****************************************/
+
 void Pluse()                                           
 {
 	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
-	Delayms(10000);
+	Delayms(1000);
 	
-	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 10000);
+	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 0);
 }
 
-/********************************************************************************************************/
-//TRUYEN NHAN DU LIEU UART
+/************************UART. NGAT NHAN******************************************/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
 
 	if(Rx_data == '1')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 1 dong.\n", 15, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 1 dong.\n", 15, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
 	}
 	if(Rx_data == '2')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 2 dong.\n", 15, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 2 dong.\n", 15, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 	}
 	if(Rx_data == '3')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 3 dong.\n", 15, 300);
+		HAL_UART_Transmit(&huart1,(uint8_t *) "Relay 3 dong.\n", 15, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 	}
 	if(Rx_data == 'a')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 1 cat.\n", 14, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 1 cat.\n", 14, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
 	}
 	if(Rx_data == 'b')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 2 cat.\n", 14, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 2 cat.\n", 14, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 	}
 	if(Rx_data == 'c')
 	{
-		HAL_UART_Transmit(&huart1, "Relay 3 cat.\n", 14, 300);
+		HAL_UART_Transmit(&huart1,(uint8_t *) "Relay 3 cat.\n", 14, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 	}
 	if(Rx_data == '0')
 	{
-		HAL_UART_Transmit(&huart1, "Ca 3 Relay cung cat.\n", 21, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Ca 3 Relay cung cat.\n", 21, 300);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 	}
 	if(Rx_data == 'p')
 	{
-		HAL_UART_Transmit(&huart1, "Start\n", 6, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "Start\n", 6, 300);
 		Pluse();
-		HAL_UART_Transmit(&huart1, "End\n", 4, 300);
+		HAL_UART_Transmit(&huart1, (uint8_t *) "End\n", 4, 300);
 	}
 	HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 }
-/*************************DOC GIA TRI DIEN AP BANG ADC(2 CHANNAL)****************************************/
-//KHOI TAO ADC1 CHANNAL 0
+/*************************ADC. CH0 AND CH1****************************************/
 void ADC_Select_CH0 (void)
 {
  ADC_ChannelConfTypeDef sConfig = {0};
@@ -136,7 +154,6 @@ void ADC_Select_CH0 (void)
  }
 }
 
-//KHOI TAO ADC1 CHANNAL 1
 void ADC_Select_CH1 (void)
 {
  ADC_ChannelConfTypeDef sConfig = {0};
@@ -149,19 +166,19 @@ void ADC_Select_CH1 (void)
  }
 }
 
-//DOC GIA TRI DIEN AP 5V(PA0) 
 void ReadVol_PA0()                                       
 {
 	ADC_Select_CH0();
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	x = HAL_ADC_GetValue(&hadc1);
-  V1 = x*5.5/4095;
-	snprintf(V1_buff, 99, "%f", V1);
 	HAL_ADC_Stop(&hadc1);
+  V1 = x*5/4095;
+	
+	snprintf((char *) V1_buff, 99, "Gia tri dien ap tai chan PA0(2.5 - 5V) la: %.2f\n", V1);
+
 }
 	
-//DOC GIA TRI DIEN AP 3V3(PA0) 
 void ReadVol_PA1()                                       
 {
 	ADC_Select_CH1();
@@ -169,26 +186,37 @@ void ReadVol_PA1()
 	HAL_ADC_PollForConversion(&hadc1, 300);
 	y = HAL_ADC_GetValue(&hadc1);
   V2 = y*3.3/4095;
-	snprintf(V2_buff, 99, "%f", V2);
 	HAL_ADC_Stop(&hadc1);
+
+	snprintf((char *) V2_buff, 99, "Gia tri dien ap tai chan PA1 la(2.5 - 3.3V): %.2f\n", V2);
 }
 
-//HIEN THI GIA TRI 5V - UART
+
 void TranVol_PA0()                                       
 {
 	ReadVol_PA0();
-	HAL_UART_Transmit(&huart1, "Gia tri dien ap tai chan PA0 la: ", 35, 300);
-	HAL_UART_Transmit(&huart1, V1_buff, sizeof(V1_buff), 300);
-	HAL_UART_Transmit(&huart1, "\n", 1, 300);
+	if(V1 < 2.5)
+	{
+		printf("Chan PA0 dang tha noi.\n");
+	}
+	else
+	{
+	  HAL_UART_Transmit(&huart1, V1_buff, sizeof(V1_buff), 300);
+	}
 }
 
-//HIEN THI GIA TRI 3V3 - UART
+
 void TranVol_PA1()                                       
 {
 	ReadVol_PA1();
-	HAL_UART_Transmit(&huart1, "Gia tri dien ap tai chan PA1 la: ", 35, 300);
-	HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
-	HAL_UART_Transmit(&huart1, "\n", 1, 300);
+	if(V2 < 2.5)
+	{
+		printf("Chan PA1 dang tha noi.\n");
+	}
+	else
+	{
+	  HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
+	}
 }
 
 /*****************************************************************************************************/
@@ -251,7 +279,7 @@ int main(void)
 	HAL_UART_Transmit(&huart1, Tx1_buff, sizeof(Tx1_buff), 300);
   HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
-  uint32_t t = 0;
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -298,13 +326,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//		TranVol();
-//		while(HAL_GetTick() - t <= 5000);
-//		t = HAL_GetTick();
-		
-		
-
-		
   }
   /* USER CODE END 3 */
 }
@@ -607,7 +628,7 @@ void Tranfer_Receive(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    HAL_UART_Transmit(&huart1, "Relay 10 dong.\n", 16, 300);
+		osDelay(1);
   }
   /* USER CODE END Tranfer_Receive */
 }
@@ -626,7 +647,7 @@ void Pluse100(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		HAL_UART_Transmit(&huart1, "Relay 100 dong.\n", 17, 300);
+		osDelay(1);
     
   }
   /* USER CODE END Pluse100 */
