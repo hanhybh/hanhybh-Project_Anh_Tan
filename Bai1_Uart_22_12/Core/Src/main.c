@@ -24,6 +24,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "cJSON.h"
+
 #include <delay_timer.h>
 /* USER CODE END Includes */
 
@@ -54,18 +58,48 @@ osThreadId Task1_TranVolHandle;
 osThreadId Task2_UARTHandle;
 osThreadId Task3_PluseHandle;
 /* USER CODE BEGIN PV */
-/*************************KHAI BAO****************************************/
+
+
+
+
+/*************************KHAI BAO.Task1: Dieu khien dong co bang Relay****************************************/
 uint8_t Tx0_buff[] = "Task1. Dieu khien dong co bang relay.\n";
 uint8_t Rx_buff[30];
 uint8_t Rx_data = 0;
-
+/*************************KHAI BAO.Task2: Doc gia tri ADC****************************************/
 uint8_t Tx1_buff[] = "Task2. Dung ADC doc gia tri dien ap.\n";
 uint8_t V1_buff[MAX], V2_buff[MAX], Vref_buff[MAX];
 float V[3];
 float V1, V2, VDDA;
 
+uint8_t PA0[MAX], PA1[MAX];
+/*************************KHAI BAO.Test RTOS****************************************/
 uint32_t cnt1 = 0, cnt2 = 0, cnt3 = 0;
+/*****************************************************************************/
 
+
+/*************************Khai bao ham****************************************/
+
+void Pluse();    
+void uart_json();
+
+/*****************************************************************************************************/
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
+static void MX_ADC2_Init(void);
+void Voltage(void const * argument);
+void Tranfer_Receive(void const * argument);
+void Pluse100(void const * argument);
+
+/* USER CODE BEGIN PFP */
+/************************Printf UART******************************************/
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #else
@@ -82,21 +116,14 @@ PUTCHAR_PROTOTYPE
   HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
   return ch;
 }
+/* USER CODE END PFP */
 
-/*************************PWM. 100 PLUSE****************************************/
-
-void Pluse()                                           
-{
-	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
-	Delayms(1000);
-	
-	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 0);
-}
-
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 /************************UART. NGAT NHAN******************************************/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
-
+  /*****************RELAY*****************/
 	if(Rx_data == '1')
 	{
 		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 1 dong.\n", 15, 300);
@@ -134,12 +161,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 	}
-	if(Rx_data == 'p')
+	  /*****************PWM*****************/
+	if(Rx_data == 'p')                                                             
 	{
 		HAL_UART_Transmit(&huart1, (uint8_t *) "Start\n", 6, 300);
 		Pluse();
 		HAL_UART_Transmit(&huart1, (uint8_t *) "End\n", 4, 300);
 	}
+	  /*****************ADC*****************/
+	if(Rx_data == 'd')                                                             
+	{
+		uart_json();
+	}
+	
 	HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
 }
 /*************************ADC. CH0 AND CH1****************************************/
@@ -174,7 +208,7 @@ void ReadVol_Vref()
   VDDA = 4095.0 * 1.212 / (float)V[0];
 	HAL_ADC_Stop(&hadc1);
 	
-	snprintf((char *) Vref_buff, 99, "Gia tri dien ap tai chan Vref: %.2f\n", VDDA);
+//	snprintf((char *) Vref_buff, 99, "Gia tri dien ap tai chan Vref: %.2f\n", VDDA);
 }
 
 void ReadVol_PA0()                                       
@@ -187,7 +221,8 @@ void ReadVol_PA0()
   V1 = V[1]*VDDA/4095;
 	V1 = V1 *5/3.3;
 	
-	snprintf((char *) V1_buff, 99, "Gia tri dien ap tai chan PA0(2.5 - 5V) la: %.2f\n", V1);
+//	snprintf((char *) V1_buff, 99, "Gia tri dien ap tai chan PA0(2.5 - 5V) la: %.2f\n", V1);
+	snprintf((char *) V1_buff, 99, "%.2f", V1);
 
 }
 	
@@ -200,7 +235,7 @@ void ReadVol_PA1()
   V2 = V[2]*VDDA/4095;
 	HAL_ADC_Stop(&hadc2);
 
-	snprintf((char *) V2_buff, 99, "Gia tri dien ap tai chan PA1 la(2.5 - 3.3V): %.2f\n", V2);
+	snprintf((char *) V2_buff, 99, "%.2f", V2);
 }
 
 void TranVol_Vref()  
@@ -212,13 +247,14 @@ void TranVol_Vref()
 void TranVol_PA0()                                       
 {
 	ReadVol_PA0();
-	if(V1 < 2.5)
+	if(V1 < 3.0)
 	{
-		printf("Chan PA0 dang tha noi.\n");
+		strcpy((char *)PA0, "Chan PA0 dang tha noi.");
 	}
 	else
 	{
-	  HAL_UART_Transmit(&huart1, V1_buff, sizeof(V1_buff), 300);
+//	  HAL_UART_Transmit(&huart1, V1_buff, sizeof(V1_buff), 300);
+		strcpy((char *)PA0,(char *)V1_buff);
 	}
 }
 
@@ -228,35 +264,39 @@ void TranVol_PA1()
 	ReadVol_PA1();
 	if(V2 < 2.5)
 	{
-		printf("Chan PA1 dang tha noi.\n");
+		strcpy((char *)PA1, "Chan PA1 dang tha noi.\n");
 	}
 	else
 	{
-	  HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
+//	  HAL_UART_Transmit(&huart1, V2_buff, sizeof(V2_buff), 300);
+		strcpy((char *)PA1,(char *)V2_buff);
 	}
 }
 
-/*****************************************************************************************************/
-/* USER CODE END PV */
+void uart_json()
+{
+	TranVol_Vref();
+	TranVol_PA0();
+	TranVol_PA1();
+	char *out;
+	cJSON *root;
+	root  = cJSON_CreateObject();
 
-/* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_ADC1_Init(void);
-static void MX_TIM2_Init(void);
-static void MX_TIM3_Init(void);
-static void MX_ADC2_Init(void);
-void Voltage(void const * argument);
-void Tranfer_Receive(void const * argument);
-void Pluse100(void const * argument);
+  cJSON_AddItemToObject(root, "PA0: ", cJSON_CreateString((char *) PA0));
+  cJSON_AddItemToObject(root, "PA1: ", cJSON_CreateString((char *) PA1));
+  
+  out = cJSON_Print(root);
+  printf("%s\n",out);
+}
+/*************************PWM. 100 PLUSE****************************************/
 
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+void Pluse()                                           
+{
+	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 5000);
+	Delayms(1000);
+	
+	 __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 0);
+}
 
 /* USER CODE END 0 */
 
@@ -672,10 +712,11 @@ void Voltage(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		TranVol_Vref();
-		TranVol_PA0();     
-		TranVol_PA1();   
-    Delayms(5000);
+//		TranVol_Vref();
+//		TranVol_PA0();     
+//		TranVol_PA1();   
+//    Delayms(5000);
+		osDelay(1);
   }
   /* USER CODE END 5 */
 }

@@ -45,4 +45,7 @@ bai1_uart_22_12\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue
 bai1_uart_22_12\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 bai1_uart_22_12\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 bai1_uart_22_12\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+bai1_uart_22_12\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+bai1_uart_22_12\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+bai1_uart_22_12\main.o: ..\JSON\cJSON.h
 bai1_uart_22_12\main.o: ../Timer_Delay/delay_timer.h

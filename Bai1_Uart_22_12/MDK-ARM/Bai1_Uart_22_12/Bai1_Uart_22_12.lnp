@@ -5,6 +5,7 @@
 "bai1_uart_22_12\stm32f1xx_it.o"
 "bai1_uart_22_12\stm32f1xx_hal_msp.o"
 "bai1_uart_22_12\stm32f1xx_hal_timebase_tim.o"
+"bai1_uart_22_12\cjson.o"
 "bai1_uart_22_12\stm32f1xx_hal_gpio_ex.o"
 "bai1_uart_22_12\stm32f1xx_hal_adc.o"
 "bai1_uart_22_12\stm32f1xx_hal_adc_ex.o"
