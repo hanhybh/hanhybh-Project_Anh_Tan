@@ -63,16 +63,22 @@ osThreadId Task3_PluseHandle;
 
 
 /*************************KHAI BAO.Task1: Dieu khien dong co bang Relay****************************************/
-uint8_t Tx0_buff[] = "Task1. Dieu khien dong co bang relay.\n";
-uint8_t Rx_buff[30];
-uint8_t Rx_data = 0;
+typedef struct UART
+{
+	uint8_t Rx_data;
+	uint8_t Rx_Buff[MAX];
+	uint8_t Tx_Buff[MAX];
+	uint16_t Flag;
+	uint16_t index;
+} UART;
+
+UART uart1;
 /*************************KHAI BAO.Task2: Doc gia tri ADC****************************************/
-uint8_t Tx1_buff[] = "Task2. Dung ADC doc gia tri dien ap.\n";
 uint8_t V1_buff[MAX], V2_buff[MAX], Vref_buff[MAX];
 float V[3];
 float V1, V2, VDDA;
 
-uint8_t PA0[MAX], PA1[MAX];
+uint8_t PA0[MAX], PA1[MAX], Vref[MAX];
 /*************************KHAI BAO.Test RTOS****************************************/
 uint32_t cnt1 = 0, cnt2 = 0, cnt3 = 0;
 /*****************************************************************************/
@@ -121,62 +127,95 @@ PUTCHAR_PROTOTYPE
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /************************UART. NGAT NHAN******************************************/
+
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
-  /*****************RELAY*****************/
-	if(Rx_data == '1')
+  if(huart->Instance == huart1.Instance)
 	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 1 dong.\n", 15, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
+		if(uart1.Rx_data == '\n')
+		{
+			uart1.Flag = 1;
+		}
+		else
+	  {
+		  uart1.Rx_Buff[uart1.index++] = uart1.Rx_data;
+	  }
+		
+		HAL_UART_Receive_IT(&huart1, &uart1.Rx_data, 1);
 	}
-	if(Rx_data == '2')
-	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 2 dong.\n", 15, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
-	}
-	if(Rx_data == '3')
-	{
-		HAL_UART_Transmit(&huart1,(uint8_t *) "Relay 3 dong.\n", 15, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-	}
-	if(Rx_data == 'a')
-	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 1 cat.\n", 14, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
-	}
-	if(Rx_data == 'b')
-	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Relay 2 cat.\n", 14, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
-	}
-	if(Rx_data == 'c')
-	{
-		HAL_UART_Transmit(&huart1,(uint8_t *) "Relay 3 cat.\n", 14, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-	}
-	if(Rx_data == '0')
-	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Ca 3 Relay cung cat.\n", 21, 300);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-	}
-	  /*****************PWM*****************/
-	if(Rx_data == 'p')                                                             
-	{
-		HAL_UART_Transmit(&huart1, (uint8_t *) "Start\n", 6, 300);
-		Pluse();
-		HAL_UART_Transmit(&huart1, (uint8_t *) "End\n", 4, 300);
-	}
-	  /*****************ADC*****************/
-	if(Rx_data == 'd')                                                             
-	{
-		uart_json();
-	}
-	
-	HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
+		
+}
+
+void Trans_UART()
+{
+	if(uart1.Flag == 1)
+ {
+		if(strcmp((char *) uart1.Rx_Buff, "1") == 0)
+		{
+			printf("Relay 1 dong.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "2") == 0)
+		{
+			printf("Relay 2 dong.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "3") == 0)
+		{
+			printf("Relay 3 dong.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "a") == 0)
+		{
+			printf("Relay 1 cat.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "b") == 0)
+		{
+			printf("Relay 2 cat.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "c") == 0)
+		{
+			printf("Relay 3 cat.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "0") == 0)
+		{
+			printf("Relay 3 cat.\n");
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "DA") == 0)
+		{
+			printf("Gia tri dien ap la: \n");
+			uart_json();
+		}
+		
+		if(strcmp((char *) uart1.Rx_Buff, "p") == 0)
+		{
+			printf("Start\n");
+		  Pluse();
+		  printf("End\n");
+		}
+		
+		memset(uart1.Rx_Buff, '\0', 100);
+		uart1.index = 0;
+		uart1.Flag = 0;
+	}	
+ 
 }
 /*************************ADC. CH0 AND CH1****************************************/
+/**************ADC. SETUP CH0 AND CH1*****************************/
 void ADC_Select_CH0 (void)
 {
  ADC_ChannelConfTypeDef sConfig = {0};
@@ -200,6 +239,7 @@ void ADC_Select_CH1 (void)
    Error_Handler();
  }
 }
+/**************ADC. READ VREF, CH0 AND CH1*****************************/
 void ReadVol_Vref()                                       
 {
 	HAL_ADC_Start(&hadc1);
@@ -209,6 +249,7 @@ void ReadVol_Vref()
 	HAL_ADC_Stop(&hadc1);
 	
 //	snprintf((char *) Vref_buff, 99, "Gia tri dien ap tai chan Vref: %.2f\n", VDDA);
+	snprintf((char *) Vref_buff, 99, "%.2f", VDDA);
 }
 
 void ReadVol_PA0()                                       
@@ -225,7 +266,7 @@ void ReadVol_PA0()
 	snprintf((char *) V1_buff, 99, "%.2f", V1);
 
 }
-	
+
 void ReadVol_PA1()                                       
 {
 	ADC_Select_CH1();
@@ -237,11 +278,11 @@ void ReadVol_PA1()
 
 	snprintf((char *) V2_buff, 99, "%.2f", V2);
 }
-
+/**************ADC. TRANSMIT CH0 AND CH1*****************************/
 void TranVol_Vref()  
 {
 	ReadVol_Vref();
-	HAL_UART_Transmit(&huart1, Vref_buff, sizeof(Vref_buff), 300);
+	strcpy((char *)Vref,(char *)Vref_buff);
 }
 
 void TranVol_PA0()                                       
@@ -249,7 +290,7 @@ void TranVol_PA0()
 	ReadVol_PA0();
 	if(V1 < 3.0)
 	{
-		strcpy((char *)PA0, "Chan PA0 dang tha noi.");
+		strcpy((char *)PA0, "Chan PA0 tha noi.");
 	}
 	else
 	{
@@ -264,7 +305,7 @@ void TranVol_PA1()
 	ReadVol_PA1();
 	if(V2 < 2.5)
 	{
-		strcpy((char *)PA1, "Chan PA1 dang tha noi.\n");
+		strcpy((char *)PA1, "Chan PA1 tha noi.");
 	}
 	else
 	{
@@ -272,7 +313,7 @@ void TranVol_PA1()
 		strcpy((char *)PA1,(char *)V2_buff);
 	}
 }
-
+/**************ADC. UART_JSON*****************************/
 void uart_json()
 {
 	TranVol_Vref();
@@ -281,12 +322,16 @@ void uart_json()
 	char *out;
 	cJSON *root;
 	root  = cJSON_CreateObject();
-
-  cJSON_AddItemToObject(root, "PA0: ", cJSON_CreateString((char *) PA0));
-  cJSON_AddItemToObject(root, "PA1: ", cJSON_CreateString((char *) PA1));
+	
+//	cJSON_AddItemToObject(root, "Vref", cJSON_CreateString((char *) Vref));
+  cJSON_AddItemToObject(root, "PA0", cJSON_CreateString((char *) PA0));
+  cJSON_AddItemToObject(root, "PA1", cJSON_CreateString((char *) PA1));
   
   out = cJSON_Print(root);
   printf("%s\n",out);
+	
+	free(out);
+	cJSON_Delete(root);
 }
 /*************************PWM. 100 PLUSE****************************************/
 
@@ -334,10 +379,15 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Transmit(&huart1, Tx0_buff, sizeof(Tx0_buff), 300);
-	HAL_UART_Transmit(&huart1, Tx1_buff, sizeof(Tx1_buff), 300);
-  HAL_UART_Receive_IT(&huart1, &Rx_data, 1);
-	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+	strcpy((char *) uart1.Tx_Buff, "Bat dau!\n");
+  HAL_UART_Transmit(&huart1, uart1.Tx_Buff, sizeof(uart1.Tx_Buff), 300);
+	
+	printf("Task1. Bat tat Relay!\n");
+	printf("Task2. Doc gia tri dien ap ADC!\n");
+	printf("Task3. Xuat ra 100 xung PWM!\n");
+	
+  HAL_UART_Receive_IT(&huart1, &uart1.Rx_data, 1);
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 
@@ -716,6 +766,8 @@ void Voltage(void const * argument)
 //		TranVol_PA0();     
 //		TranVol_PA1();   
 //    Delayms(5000);
+		Trans_UART();
+		cnt1++;
 		osDelay(1);
   }
   /* USER CODE END 5 */
@@ -734,6 +786,8 @@ void Tranfer_Receive(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+		Trans_UART();
+		cnt2++;
 		osDelay(1);
   }
   /* USER CODE END Tranfer_Receive */
@@ -752,6 +806,8 @@ void Pluse100(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+		Trans_UART();
+		cnt3++;
 		osDelay(1);
     
   }
